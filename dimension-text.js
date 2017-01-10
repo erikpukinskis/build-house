@@ -17,17 +17,20 @@ module.exports = function dimensionText(number, options) {
     var fraction = sixteenths+"/16"
   }
 
+  if (fraction) {
+    fraction += "&Prime;"
+  }
+
   if (integer == 0 && sixteenths != 0) {
-    var inches = fraction+"\""
+    var string = fraction
   } else {
-    var inches = integer.toString()
+    var string = integer.toString()+"&prime;"
     if (fraction) {
-      inches += "&nbsp;"+fraction
+      string += "&nbsp;"+fraction
     }
-    inches += "\""
   }
 
   var wbr = options && options.wordBreak === false ? "" : "<wbr>"
 
-  return "<div class=\"dimension\">"+inches+"</div>"+wbr
+  return "<div class=\"dimension\">"+string+"</div>"+wbr
 }

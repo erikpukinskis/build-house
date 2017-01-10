@@ -199,9 +199,13 @@ module.exports = library.export(
         "line-height": "1em",
       }),
       function(text) {
-        this.addChild(text)
+        this.addChild(sentenceCase(text))
       }
     )
+
+    function sentenceCase(text) {
+      return text[0].toUpperCase() + text.slice(1)      
+    }
 
     var em = element.style(".dimension", {
       "display": "inline",
@@ -262,7 +266,7 @@ module.exports = library.export(
           this.classes.push("task-completed")
         }
         this.addChild(checkBox(isCompleted))
-        this.addChild(text)
+        this.addChild(sentenceCase(text))
 
         this.classes.push("task-"+id)
         this.onclick(complete.withArgs(id).evalable())

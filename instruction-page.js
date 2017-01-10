@@ -167,7 +167,7 @@ module.exports = library.export(
 
         page = element()
         steps.play(handlers)
-        bridge.sendPage(page)(request, response)
+        bridge.requestHandler(page)(request, response)
       }
     }
 

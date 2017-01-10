@@ -2,8 +2,8 @@ var library = require("module-library")(require)
 
 module.exports = library.export(
   "build",
-  ["house-plan", "browser-bridge", "web-element", "./build-floor", "./build-wall", "./instruction-page", "basic-styles", "house-panels", "./allocate-materials", "./dasherize"],
-  function(HousePlan, BrowserBridge, element, buildFloor, buildWall, instructionPage, basicStyles, panels, allocateMaterials, teensyHouse3, dasherize) {
+  ["house-plan", "browser-bridge", "web-element", "./build-floor", "./build-wall", "./instruction-page", "basic-styles", "house-panels", "building-materials", "./dasherize"],
+  function(HousePlan, BrowserBridge, element, buildFloor, buildWall, instructionPage, basicStyles, panels, buildingMaterials, teensyHouse3, dasherize) {
 
     var index = element([
       element("h1", "Instructions")
@@ -58,7 +58,7 @@ module.exports = library.export(
 
           panels.addTo(plan, tag)
 
-          var materials = allocateMaterials(plan)
+          var materials = buildingMaterials.forPlan(plan)
 
 
           var steps = builder(options, materials)

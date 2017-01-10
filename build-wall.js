@@ -146,7 +146,7 @@ module.exports = library.export(
           var spacing = Math.ceil(options.ySize/12)
 
 
-          task("lay-out-framing", "Space the two pieces of track <strong>"+spacing+" feet</strong> apart. Set the studs inside the tracks on the X side of each mark. Studs should face in.")
+          task("lay-out-framing", "Space the two pieces of track "+dimensionText(spacing)+" apart. Set the studs inside the tracks on the X side of each mark. Studs should face in.")
           task("crimp", "At each stud-track intersection, have one person press the stud securely up into the track, while another person crimps the two together.")
           task("flip-framing", "Gently flip the frame over")
           task("crimp-other-side", "Crimp the other side")

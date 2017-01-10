@@ -128,7 +128,7 @@ module.exports = library.export(
             text += ", "+scrap.slopeHint+","
           }
         } else {
-          var text = scrap.cut+" cut <strong>"+dimensionText(scrap.size)+"</strong>"
+          var text = scrap.cut+" cut "+dimensionText(scrap.size)
         }
 
         text += " from "+material.description
@@ -205,9 +205,9 @@ module.exports = library.export(
 
     var em = element.style(".dimension", {
       "display": "inline",
-      "font-weight": "bold",
-      "font-size": "18pt",
-      "line-height": "1em",
+      "text-decoration": "underline",
+      "font-size": "1.2em",
+      "line-height": "0.9em",
     })
 
     var checkMark = element.template(
@@ -230,11 +230,10 @@ module.exports = library.export(
         "background": "transparent",
         "width": "1.15em",
         "height": "1.15em",
-        "margin-right": "0.5em",
+        "margin": "-0.2em 0.5em -0.1em 0",
         "color": "#dff",
         "padding": "1px 3px 0px 3px",
         "font-size": "1.15em",
-        "line-height": "1em",
         "display": "inline-block",
         "cursor": "pointer",
       }),
@@ -255,6 +254,7 @@ module.exports = library.export(
         "cursor": "pointer",
         "text-indent": "-1.95em",
         "margin-left": "1.95em",
+        "line-height": "1.4em",
       }),
       function(text, id, complete, bridge) {
         var isCompleted = doable.isCompleted(id)

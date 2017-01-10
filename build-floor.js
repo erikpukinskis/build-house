@@ -50,10 +50,10 @@ module.exports = library.export(
         var trackLength = dimensionText(materials.list("front-track")[0].size
         )
 
-        task("space-tracks", "Lay out the front and back tracks (should be "+trackLength+" long) <strong>"+dimensionText(options.zSize)+"</strong> apart.")
+        task("space-tracks", "Lay out the front and back tracks (should be "+trackLength+" long) "+dimensionText(options.zSize)+" apart.")
 
         function toLeft(joist) {
-          return "<strong>"+dimensionText(joist.destination.xPos)+"</strong>"
+          return dimensionText(joist.destination.xPos)
         }
 
         task("set-joists", "Set the joists in the tracks "+joists.map(toLeft)+" from the right")

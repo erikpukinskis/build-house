@@ -14,7 +14,8 @@
     "make-request": "*",
     "basic-styles": "*",
     "house-panels": "*",
-    "building-materials": "*"
+    "building-materials": "*",
+    "web-host": "*"
   },
   "scripts": {
     "start": "env $(cat CREDENTIALS | xargs) node start",

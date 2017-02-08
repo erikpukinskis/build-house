@@ -33,15 +33,15 @@ module.exports = library.export(
       optionsByTag[tag] = options
     }
 
-    function boot(site) {
+    function renderIndex(bridge) {
+      basicStyles.addTo(bridge)
+      bridge.send(index)
+    }
 
-      var baseBridge = new BrowserBridge()
-      baseBridge.addToHead(basicStyles)
+    var baseBridge = new BrowserBridge()
+    basicStyles.addTo(baseBridge)
 
-      site.addRoute(
-        "get", "/build-house",
-        baseBridge.sendPage(index)
-      )
+    function prepareSite(site) {
 
       site.addRoute(
         "get", "/build-section/:tagText",
@@ -63,7 +63,6 @@ module.exports = library.export(
 
           var steps = builder(options, materials)
 
-          // should be buildBridge.fork()
           var bridge = baseBridge.copy()
 
           var handler = instructionPage(steps, materials, bridge, site, tag)
@@ -73,6 +72,8 @@ module.exports = library.export(
       )
     }
 
-    return boot
+    renderIndex.prepareSite = prepareSite
+
+    return renderIndex
   }
 )

@@ -192,12 +192,7 @@ module.exports = library.export(
     }
 
     var stepTitle = element.template(
-      ".step-title",
-      element.style({
-        "margin": "34pt 0 12pt 0",
-        "font-size": "1.5em",
-        "line-height": "1em",
-      }),
+      "h1.step-title",
       function(text) {
         this.addChild(sentenceCase(text))
       }
@@ -230,11 +225,11 @@ module.exports = library.export(
       "button.toggle-button",
       element.style({
         "border": "0.1em solid #666",
-        "vertical-align": "middle",
+        "vertical-align": "-0.08em",
         "background": "transparent",
-        "width": "1.15em",
-        "height": "1.15em",
-        "margin": "-0.2em 0.5em -0.1em 0",
+        "width": "1.3em",
+        "height": "1.3em",
+        "margin-right": "0.25em",
         "color": "#dff",
         "padding": "1px 3px 0px 3px",
         "font-size": "1.15em",
@@ -256,8 +251,6 @@ module.exports = library.export(
       element.style({
         "margin-bottom": "0.8em",
         "cursor": "pointer",
-        "text-indent": "-1.95em",
-        "margin-left": "1.95em",
         "line-height": "1.4em",
       }),
       function(text, id, complete, bridge) {

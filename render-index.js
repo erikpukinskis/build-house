@@ -2,8 +2,27 @@ var library = require("module-library")(require)
 
 module.exports = library.export(
   "build",
-  ["house-plan", "browser-bridge", "web-element", "./build-floor", "./build-wall", "./instruction-page", "basic-styles", "house-panels", "building-materials", "./dasherize"],
-  function(HousePlan, BrowserBridge, element, buildFloor, buildWall, instructionPage, basicStyles, panels, buildingMaterials, teensyHouse3, dasherize) {
+  ["house-plan", "browser-bridge", "web-element", "./build-floor", "./build-wall", "./instruction-page", "basic-styles", "house-panels", "building-materials", "tell-the-universe", "./doable"],
+  function(HousePlan, BrowserBridge, element, buildFloor, buildWall, instructionPage, basicStyles, panels, buildingMaterials,tellTheUniverse, doable) {
+
+
+    tellTheUniverse = tellTheUniverse
+      .called("houses")
+      .onLibrary(library)
+      .withNames({
+        doable: "doable"
+      })
+
+    tellTheUniverse.persistToS3({
+      key: process.env.AWS_ACCESS_KEY_ID,
+      secret: process.env.AWS_SECRET_ACCESS_KEY,
+      bucket: "ezjs"
+    })
+
+    tellTheUniverse.loadFromS3(function(){
+      console.log("OK! "+doable.count+" tasks done")
+    })
+
 
     var index = element([
       element("h1", "Instructions")
@@ -43,33 +62,38 @@ module.exports = library.export(
 
     function prepareSite(site) {
 
-      site.addRoute(
-        "get", "/build-section/:tagText",
-        function(request, response) {
-          var tag = request.params.tagText
-          var options = optionsByTag[tag]
-          var builder = builderByTag[tag]
+      site.addRoute("get", "/build-section/:tagText", function(request, response) {
 
-          if (!options) {
-            throw new Error("no options for "+tag)
-          }
-
-          var plan = new HousePlan()
-
-          panels.addTo(plan, tag)
-
-          var materials = buildingMaterials.forPlan(plan)
-
-
-          var steps = builder(options, materials)
-
-          var bridge = baseBridge.copy()
-
-          var handler = instructionPage(steps, materials, bridge, site, tag)
-
-          handler(request, response)
+        if (!tellTheUniverse.isReady()) {
+          response.send("server not ready yet")
+          return
         }
-      )
+
+        var tag = request.params.tagText
+        var options = optionsByTag[tag]
+        var builder = builderByTag[tag]
+
+        if (!options) {
+          throw new Error("no options for "+tag)
+        }
+
+        var plan = new HousePlan()
+
+        panels.addTo(plan, tag)
+
+        var materials = buildingMaterials.forPlan(plan)
+
+        var steps = builder(options, materials)
+
+        var bridge = baseBridge.forResponse(response)
+
+        var onComplete = doable.complete.defineOn(site, bridge, tellTheUniverse)
+
+        instructionPage.prepareBridge(bridge, onComplete)
+
+        instructionPage(steps, materials, bridge, tag)
+
+      })
     }
 
     renderIndex.prepareSite = prepareSite

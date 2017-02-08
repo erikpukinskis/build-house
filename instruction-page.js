@@ -2,36 +2,16 @@ var library = require("module-library")(require)
 
 module.exports = library.export(
   "send-instructions",
-  ["browser-bridge", "web-element", "./dimension-text", "tell-the-universe", "./doable", "house-plan"],
-  function(BrowserBridge, element, dimensionText, tellTheUniverse, doable, HousePlan) {
+  ["browser-bridge", "web-element", "./dimension-text", "./doable"],
+  function(BrowserBridge, element, dimensionText, doable) {
 
 
+    function prepareBridge(bridge, save) {
 
-    tellTheUniverse = tellTheUniverse
-      .called("houses")
-      .onLibrary(library)
-      .withNames({
-        doable: "doable"
-      })
-
-    tellTheUniverse.persistToS3({
-      key: process.env.AWS_ACCESS_KEY_ID,
-      secret: process.env.AWS_SECRET_ACCESS_KEY,
-      bucket: "ezjs"
-    })
-
-    tellTheUniverse.loadFromS3(function(){
-      console.log("OK! "+doable.count+" tasks done")
-    })
-
-
-
-    function instructionPage(steps, materials, bridge, server, sectionName) {
-
-      var saveCompletion = doable.complete.defineOn(server, bridge, tellTheUniverse)
+      if (bridge.remember("instruction-page/onCheck")) { return }
 
       var onCheck = bridge.defineFunction(
-        [saveCompletion],
+        [save],
         function onCheck(save, id) {
 
           var el = document.querySelector(".task-"+id)
@@ -46,30 +26,30 @@ module.exports = library.export(
         }
       )
 
-      bridge.addToHead(element.stylesheet(stepTitle, em, checkBox, checkMark, checkMarkChecked, taskTemplate, taskCompleted).html())
+      bridge.see("instruction-page/onCheck", onCheck)
 
-      var page
+      bridge.addToHead(
+        element.stylesheet(stepTitle, em, checkBox, checkMark, checkMarkChecked, taskTemplate, taskCompleted)
+      )
 
-
-      return function(request, response) {
-        if (!tellTheUniverse.isReady()) {
-          throw new Error("server not ready yet")
-        }
-
-        var handlers = new Handlers(sectionName, onCheck)
-
-        steps.play(handlers)
-
-        page = element(
-          element("h1", sentenceCase(sectionName)+" build instructions"),
-          handlers.content
-        )
-
-        bridge.requestHandler(page)(request, response)
-      }
     }
 
 
+    function instructionPage(steps, materials, bridge, sectionName) {
+
+      var handlers = new Handlers(sectionName, bridge.remember("instruction-page/onCheck"))
+
+      steps.play(handlers)
+
+      var page = element(
+        element("h1", sentenceCase(sectionName)+" build instructions"),
+        handlers.content
+      )
+
+      bridge.send(page)
+    }
+
+    instructionPage.prepareBridge = prepareBridge
 
 
     // Handlers
@@ -171,7 +151,7 @@ module.exports = library.export(
 
       return taskTemplate(text, id, onCheck)
     }
-    
+
     Handlers.prototype.marks = function(scraps, options, side) {
 
       if (options.name) {

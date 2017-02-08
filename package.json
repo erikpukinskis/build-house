@@ -1,6 +1,6 @@
 {
   "name": "build-house",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Step by step instructions for how to build a house",
   "main": "build-house.js",
   "dependencies": {
@@ -8,7 +8,6 @@
     "web-site": "*",
     "browser-bridge": "*",
     "web-element": "*",
-    "web-site": "*",
     "house-plan": "*",
     "tell-the-universe": "*",
     "make-request": "*",

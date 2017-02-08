@@ -18,8 +18,8 @@
     "web-host": "*"
   },
   "scripts": {
-    "start": "env $(cat CREDENTIALS | xargs) node start",
-    "debug": "env $(cat CREDENTIALS | xargs) node debug start"
+    "start": "env $(cat CREDENTIALS | xargs) node demo",
+    "debug": "env $(cat CREDENTIALS | xargs) node debug demo"
   },
   "repository": {
     "type": "git",

@@ -26,7 +26,8 @@ module.exports = function() {
       if (!stepHandler) {
         throw new Error("When you play steps you need a step handler. Try steps.play({step: function(description, results) { console.log(description+\" is done.\")")
       }
-      stepHandler(description, outputs)
+
+      stepHandler.call(handlers, description, outputs)
 
     }
   }
@@ -45,11 +46,16 @@ module.exports = function() {
         throw new Error("A step generator used a "+name+" command, but you didn't provide a handler for it. Try steps.play({"+name+": function(some, args) { return \"some result\" })")
       }
 
-      return captureOutput.bind(handler)
+      return captureOutput.bind(null, handler, handlers)
     }
 
-    function captureOutput() {
-      var output = this.apply(null, arguments)
+    function captureOutput(handler, handlers) {
+      var args = Array.prototype.slice.call(arguments, 2)
+      var output = handler.apply(handlers, args)
+      if (!output) {
+        console.log(handler.toString())
+        throw new Error("no output")
+      }
       outputs.push(output)
       return output
     }

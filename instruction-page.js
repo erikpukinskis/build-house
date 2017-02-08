@@ -5,6 +5,8 @@ module.exports = library.export(
   ["browser-bridge", "web-element", "./dimension-text", "tell-the-universe", "./doable", "house-plan"],
   function(BrowserBridge, element, dimensionText, tellTheUniverse, doable, HousePlan) {
 
+
+
     tellTheUniverse = tellTheUniverse
       .called("houses")
       .onLibrary(library)
@@ -22,13 +24,15 @@ module.exports = library.export(
       console.log("OK! "+doable.count+" tasks done")
     })
 
+
+
     function instructionPage(steps, materials, bridge, server, sectionName) {
 
       var saveCompletion = doable.complete.defineOn(server, bridge, tellTheUniverse)
 
-      var completeTask = bridge.defineFunction(
+      var onCheck = bridge.defineFunction(
         [saveCompletion],
-        function completeTask(save, id) {
+        function onCheck(save, id) {
 
           var el = document.querySelector(".task-"+id)
 
@@ -46,156 +50,168 @@ module.exports = library.export(
 
       var page
 
-      var handlers = {
-        step: function(description, results) {
-          var stepEl = element(
-            ".step",
-            stepTitle(description)
-          )
-
-          if (results) {
-            results.map(function(el) {
-              if (!el.html) { return }
-              stepEl.addChild(el)
-            })
-          }
-          page.addChild(stepEl)
-        },
-        task: task,
-        cut: function(scraps, labels) {
-          if (!Array.isArray(scraps)) {
-            scraps = [scraps]
-            labels = [labels]
-          } else if (!labels) {
-            labels = []
-          }
-          return element(".cut_instructions", zip(scraps, labels, scrapToTask))
-        },
-
-        // What the heck are options.dimension, extra, and slope?
-
-        marks: function(scraps, options, side) {
-
-          if (options.name) {
-            throw new Error("boop")
-          } else if (side) {
-            throw new Error("boop")
-          }
-
-          if (!options.dimension) {
-            throw new Error("marks needs a dimension along which to mark")
-          }
-
-          var offsetProperty = options.dimension+"Pos"
-
-          var extra = options.extra || 0
-          var slope = options.slope || 0
-
-          function toAlignment(scrap, i) {
-            var fromLeft = extra + scrap.destination[offsetProperty]
-
-            var rise = fromLeft*slope
-
-            var fromEnd = Math.sqrt(
-              fromLeft*fromLeft + rise*rise
-            )
-
-            var lastOne = (i == scraps.length - 1)
-
-            return dimensionText(fromEnd, {wordBreak: lastOne})
-          }
-
-          var marks = enumerate(scraps.map(toAlignment))
-
-          return marks
-        },
-      }
-
-      function scrapToTask(scrap, label) {
-        var material = scrap.material
-
-        if (scrap.tilt) {
-          var differential = scrap.material.width*scrap.tilt
-
-          var text = "cut "+dimensionText(scrap.size)+" on a "+dimensionText(differential)+" tilt "
-
-        } else if (scrap.cut == "cross" && scrap.slope) {
-
-          var shortSide = scrap.size - scrap.slope*scrap.material.width
-
-          var wordBreak = scrap.slopeHint ? false : true
-
-          var text = scrap.cut+" cut a diagonal "+dimensionText(scrap.size)+" to "+dimensionText(shortSide, {wordBreak: wordBreak})
-
-          if (scrap.slopeHint) {
-            text += ", "+scrap.slopeHint+","
-          }
-        } else {
-          var text = scrap.cut+" cut "+dimensionText(scrap.size)
-        }
-
-        text += " from "+material.description
-        if (material.number) {
-          text += " #"+material.number
-        }
-
-        if (label) {
-          text += ". Label it "+label.toUpperCase()
-        }
-  
-        var id = "cut-"+scrap.name+"-from-"+toSlug(material.description)+"-no"+material.number
-
-        return task(id, text)
-      }
-
-      function task(id, text) {
-        if (!text) {
-          throw new Error("task() takes two strings: an identifier and an instruction")
-        }
-        
-        id = "building-house-X-"+id+"-for-"+sectionName
-
-        return taskTemplate(
-          text,
-          id,
-          completeTask,
-          bridge
-        )
-      }
 
       return function(request, response) {
         if (!tellTheUniverse.isReady()) {
           throw new Error("server not ready yet")
         }
 
-        page = element(
-          element("h1", sentenceCase(sectionName)+" build instructions")
-        )
+        var handlers = new Handlers(sectionName, onCheck)
 
         steps.play(handlers)
+
+        page = element(
+          element("h1", sentenceCase(sectionName)+" build instructions"),
+          handlers.content
+        )
+
         bridge.requestHandler(page)(request, response)
       }
     }
 
-    function enumerate(items) {
-      var enumerated = ""
 
-      for(var i=0; i<items.length; i++) {
 
-        var isFirst = i == 0
-        var isLast = !isFirst && i == items.length-1
 
-        if (isLast) {
-          enumerated += ", and "
-        } else if (!isFirst) {
-          enumerated += ", "
-        }
+    // Handlers
 
-        enumerated +=  items[i]
+    function Handlers(sectionName, onCheck) {
+      this.sectionName = sectionName
+      this.content = element()
+      this.onCheck = onCheck
+
+      if (!this.content) {throw new Error("no content") }
+    }
+
+    Handlers.prototype.task = function(id, text) {
+
+      if (!text) {
+        throw new Error("task() takes two strings: an identifier and an instruction")
+      }
+      
+      id = "building-house-X-"+id+"-for-"+this.sectionName
+
+      return taskTemplate(
+        text,
+        id,
+        this.onCheck
+      )
+    }
+
+    Handlers.prototype.step = function(description, results) {
+      var stepEl = element(
+        ".step",
+        stepTitle(description)
+      )
+
+      if (results) {
+        results.map(function(el) {
+          if (!el.html) { return }
+          stepEl.addChild(el)
+        })
       }
 
-      return enumerated
+      this.content.addChild(stepEl)
     }
+
+    Handlers.prototype.cut = function(scraps, labels) {
+
+      if (!Array.isArray(scraps)) {
+        scraps = [scraps]
+        labels = [labels]
+      } else if (!labels) {
+        labels = []
+      }
+
+      var tasks = element(".cut_instructions")
+
+      var onCheck = this.onCheck
+
+      scraps.forEach(function(scrap, i) {
+        var label = labels[i]
+        var el = scrapToTask(scrap, label, onCheck)
+        tasks.addChild(el)
+      })
+
+      return tasks
+    }
+
+    function scrapToTask(scrap, label, onCheck) {
+      var material = scrap.material
+
+      if (scrap.tilt) {
+        var differential = scrap.material.width*scrap.tilt
+
+        var text = "cut "+dimensionText(scrap.size)+" on a "+dimensionText(differential)+" tilt "
+
+      } else if (scrap.cut == "cross" && scrap.slope) {
+
+        var shortSide = scrap.size - scrap.slope*scrap.material.width
+
+        var wordBreak = scrap.slopeHint ? false : true
+
+        var text = scrap.cut+" cut a diagonal "+dimensionText(scrap.size)+" to "+dimensionText(shortSide, {wordBreak: wordBreak})
+
+        if (scrap.slopeHint) {
+          text += ", "+scrap.slopeHint+","
+        }
+      } else {
+        var text = scrap.cut+" cut "+dimensionText(scrap.size)
+      }
+
+      text += " from "+material.description
+      if (material.number) {
+        text += " #"+material.number
+      }
+
+      if (label) {
+        text += ". Label it "+label.toUpperCase()
+      }
+
+      var id = "cut-"+scrap.name+"-from-"+toSlug(material.description)+"-no"+material.number
+
+      return taskTemplate(text, id, onCheck)
+    }
+    
+    Handlers.prototype.marks = function(scraps, options, side) {
+
+      if (options.name) {
+        throw new Error("boop")
+      } else if (side) {
+        throw new Error("boop")
+      }
+
+      if (!options.dimension) {
+        throw new Error("marks needs a dimension along which to mark")
+      }
+
+      var offsetProperty = options.dimension+"Pos"
+
+      var extra = options.extra || 0
+      var slope = options.slope || 0
+
+      function toAlignment(scrap, i) {
+        var fromLeft = extra + scrap.destination[offsetProperty]
+
+        var rise = fromLeft*slope
+
+        var fromEnd = Math.sqrt(
+          fromLeft*fromLeft + rise*rise
+        )
+
+        var lastOne = (i == scraps.length - 1)
+
+        return dimensionText(fromEnd, {wordBreak: lastOne})
+      }
+
+      var marks = enumerate(scraps.map(toAlignment))
+
+      return marks
+    }
+
+
+
+
+    // Templates
 
     var stepTitle = element.template(
       "h1.step-title",
@@ -203,10 +219,6 @@ module.exports = library.export(
         this.addChild(sentenceCase(text))
       }
     )
-
-    function sentenceCase(text) {
-      return text[0].toUpperCase() + text.slice(1)      
-    }
 
     var em = element.style(".dimension", {
       "display": "inline",
@@ -259,7 +271,7 @@ module.exports = library.export(
         "cursor": "pointer",
         "line-height": "1.4em",
       }),
-      function(text, id, complete, bridge) {
+      function(text, id, onCheck) {
         var isCompleted = doable.isCompleted(id)
         if (isCompleted) {
           this.classes.push("task-completed")
@@ -268,9 +280,12 @@ module.exports = library.export(
         this.addChild(sentenceCase(text))
 
         this.classes.push("task-"+id)
-        this.onclick(complete.withArgs(id).evalable())
+        this.onclick(onCheck.withArgs(id).evalable())
       }
     )
+
+
+    // Helpers
 
     function toSlug(string) {
       return string.toLowerCase().replace(/[^0-9a-z]+/g, "-")
@@ -283,6 +298,30 @@ module.exports = library.export(
         out.push(result)
       }
       return out
+    }
+
+    function sentenceCase(text) {
+      return text[0].toUpperCase() + text.slice(1)      
+    }
+
+    function enumerate(items) {
+      var enumerated = ""
+
+      for(var i=0; i<items.length; i++) {
+
+        var isFirst = i == 0
+        var isLast = !isFirst && i == items.length-1
+
+        if (isLast) {
+          enumerated += ", and "
+        } else if (!isFirst) {
+          enumerated += ", "
+        }
+
+        enumerated +=  items[i]
+      }
+
+      return enumerated
     }
 
     return instructionPage

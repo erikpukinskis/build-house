@@ -77,10 +77,6 @@ module.exports = library.export(
             })
           }
 
-          console.log("marks("+studs+", "+JSON.stringify({
-            dimension: spanDimension,
-            extra: halfStud}))
-
           var marks = marks(studs, {
             dimension: spanDimension,
             extra: halfStud,

@@ -64,8 +64,6 @@ module.exports = library.export(
 
         var tag = request.params.tagText
 
-        var tag = "side wall"
-
         var bridge = baseBridge.forResponse(response)
 
         var onComplete = doable.complete.defineOn(site, bridge, tellTheUniverse)

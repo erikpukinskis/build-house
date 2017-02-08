@@ -32,22 +32,22 @@ module.exports = library.export(
 
       steps.add("cut sheathing", function(cut, marks, task) {
 
-        cut(materials.list("sheathing"))
+        cut(materials.list("*-sheathing"))
 
-        task("sheathing-lines", "Chalk lines "+marks(joists, options)+" from the right")
+        task("sheathing-lines", "Chalk lines "+marks(joists, {dimension: "x"})+" from the right")
       })
 
       steps.add("cut subfloor", function(cut, marks, task) {
 
-        cut(materials.list("subfloor"))
+        cut(materials.list("*-subfloor"))
 
-        task("subfloor-lines", "Chalk  lines "+marks(joists, options)+" from the left")
+        task("subfloor-lines", "Chalk  lines "+marks(joists, {dimension: "x"})+" from the left")
 
       })
 
       steps.add("lay out framing", function(task) {
 
-        var trackLength = dimensionText(materials.list("front-track")[0].size
+        var trackLength = dimensionText(materials.list("*-front-track")[0].size
         )
 
         task("space-tracks", "Lay out the front and back tracks (should be "+trackLength+" long) "+dimensionText(options.zSize)+" apart.")

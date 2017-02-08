@@ -71,6 +71,9 @@ module.exports = library.export(
           }
           return element(".cut_instructions", zip(scraps, labels, scrapToTask))
         },
+
+        // What the heck are options.dimension, extra, and slope?
+
         marks: function(scraps, options, side) {
 
           if (options.name) {
@@ -165,7 +168,10 @@ module.exports = library.export(
           throw new Error("server not ready yet")
         }
 
-        page = element()
+        page = element(
+          element("h1", sentenceCase(sectionName)+" build instructions")
+        )
+
         steps.play(handlers)
         bridge.requestHandler(page)(request, response)
       }

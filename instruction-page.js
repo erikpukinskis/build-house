@@ -10,21 +10,25 @@ module.exports = library.export(
 
       if (bridge.remember("instruction-page/onCheck")) { return }
 
-      var onCheck = bridge.defineFunction(
-        [save],
-        function onCheck(save, id) {
+      if (save) {
+        var onCheck = bridge.defineFunction(
+          [save],
+          function onCheck(save, id) {
 
-          var el = document.querySelector(".task-"+id)
+            var el = document.querySelector(".task-"+id)
 
-          var isCompleted = el.classList.contains("task-completed")
+            var isCompleted = el.classList.contains("task-completed")
 
-          if (isCompleted) { return }
+            if (isCompleted) { return }
 
-          el.classList.add("task-completed")
+            el.classList.add("task-completed")
 
-          save(id)
-        }
-      )
+            save(id)
+          }
+        )
+      } else {
+        var onCheck = bridge.defineFunction(function noop() {})
+      }
 
       bridge.see("instruction-page/onCheck", onCheck)
 

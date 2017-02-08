@@ -2,8 +2,8 @@ var library = require("module-library")(require)
 
 module.exports = library.export(
   "build",
-  ["house-plan", "browser-bridge", "web-element", "./build-floor", "./build-wall", "./instruction-page", "basic-styles", "house-panels", "building-materials", "tell-the-universe", "./doable"],
-  function(HousePlan, BrowserBridge, element, buildFloor, buildWall, instructionPage, basicStyles, panels, buildingMaterials,tellTheUniverse, doable) {
+  ["house-plan", "browser-bridge", "web-element", "./build-floor", "./build-wall", "./instruction-page", "basic-styles", "house-panels", "tell-the-universe", "./doable"],
+  function(HousePlan, BrowserBridge, element, buildFloor, buildWall, instructionPage, basicStyles, panels,tellTheUniverse, doable) {
 
 
     tellTheUniverse = tellTheUniverse
@@ -28,28 +28,21 @@ module.exports = library.export(
       element("h1", "Instructions")
     ])
 
-    var builderByTag = {}
-    var optionsByTag = {}
+    var builderByTag = {
+      "base floor section": buildFloor,
+      "floor extension": buildFloor,
+      "back wall section": buildWall,
+      "side wall": buildWall,
+      "side wall extension": buildWall
+    }
 
-    addPage("base floor section", buildFloor)
-    addPage("floor extension", buildFloor)
-    addPage("back wall section", buildWall)
-    addPage("side wall", buildWall)
-    addPage("side wall extension", buildWall)
-
-    function addPage(tag, builder) {
-
+    for(var tag in builderByTag) {
       var link = element("a", tag, {
         href: "/build-section/"+encodeURIComponent(tag)
       })
-
       index.addChild(
         element("li", link)
       )
-
-      var options = panels.byTag[tag]
-      builderByTag[tag] = builder
-      optionsByTag[tag] = options
     }
 
     function renderIndex(bridge) {
@@ -60,7 +53,7 @@ module.exports = library.export(
     var baseBridge = new BrowserBridge()
     basicStyles.addTo(baseBridge)
 
-    function prepareSite(site) {
+    function prepareSite(site, materials) {
 
       site.addRoute("get", "/build-section/:tagText", function(request, response) {
 
@@ -70,28 +63,27 @@ module.exports = library.export(
         }
 
         var tag = request.params.tagText
-        var options = optionsByTag[tag]
-        var builder = builderByTag[tag]
 
-        if (!options) {
-          throw new Error("no options for "+tag)
-        }
-
-        var plan = new HousePlan()
-
-        panels.addTo(plan, tag)
-
-        var materials = buildingMaterials.forPlan(plan)
-
-        var steps = builder(options, materials)
+        var tag = "side wall"
 
         var bridge = baseBridge.forResponse(response)
 
         var onComplete = doable.complete.defineOn(site, bridge, tellTheUniverse)
 
+        var options = panels.byTag[tag]
+
+        if (!options) {
+          throw new Error("no options for "+tag)
+        }
+
+        var builder = builderByTag[tag]
+
+        var steps = builder(options, materials)
+
         instructionPage.prepareBridge(bridge, onComplete)
 
         instructionPage(steps, materials, bridge, tag)
+
 
       })
     }
